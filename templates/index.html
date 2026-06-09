@@ -3,136 +3,544 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تقدير السكان بـ ARIMA</title>
+  <title>نمذجة وتحليل البيانات — دائرة الإحصاءات العامة الأردنية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 </head>
 <body>
-<header>
-  <span>📊</span>
-  <h1>نظام تقدير السكان بنموذج ARIMA</h1>
+
+<header id="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-emblem">
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="28" cy="28" r="27" stroke="#C9A84C" stroke-width="2"/>
+          <rect x="10" y="34" width="6" height="12" fill="#C9A84C" rx="1"/>
+          <rect x="20" y="26" width="6" height="20" fill="#C9A84C" rx="1"/>
+          <rect x="30" y="18" width="6" height="28" fill="#C9A84C" rx="1"/>
+          <rect x="40" y="10" width="6" height="36" fill="#C9A84C" rx="1"/>
+          <line x1="10" y1="34" x2="46" y2="10" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2"/>
+        </svg>
+      </div>
+      <div class="header-titles">
+        <h1>دائرة الإحصاءات العامة — المملكة الأردنية الهاشمية</h1>
+        <p class="header-subtitle">المركز الوطني التفاعلي لنمذجة وتحليل البيانات</p>
+      </div>
+    </div>
+
+    <nav class="steps-nav" id="steps-nav">
+      <div class="step active" id="step-1">
+        <div class="step-circle"><span class="step-num">١</span></div>
+        <span class="step-label">الرئيسية</span>
+      </div>
+      <div class="step-connector" id="conn-1"></div>
+      <div class="step" id="step-2">
+        <div class="step-circle"><span class="step-num">٢</span></div>
+        <span class="step-label">التحليل</span>
+      </div>
+      <div class="step-connector" id="conn-2"></div>
+      <div class="step" id="step-3">
+        <div class="step-circle"><span class="step-num">٣</span></div>
+        <span class="step-label">النتائج</span>
+      </div>
+    </nav>
+  </div>
 </header>
 
 <div id="loading-overlay">
   <div class="loading-box">
-    <div class="spinner"></div>
+    <div class="loading-ring"></div>
     <span id="loading-msg">جارٍ التحميل…</span>
   </div>
 </div>
 
-<div class="container">
+<div id="app-viewport">
 
-  <!-- Upload -->
-  <div class="card">
-    <h2>① رفع ملف البيانات (Excel .xlsx)</h2>
-    <div class="upload-zone" id="drop-zone">
-      <div class="icon">📁</div>
-      <p>اسحب الملف هنا أو انقر للاختيار</p>
-      <input type="file" id="file-input" accept=".xlsx,.xls" />
-    </div>
-    <div class="status-bar" id="status-bar"></div>
+  <!-- ═══════════════════ SCREEN 1 — HOME ═══════════════════ -->
+  <div id="screen-upload" class="screen">
+
+    <!-- HERO BAND -->
+    <section class="pg1-hero">
+      <div class="pg1-hero-inner">
+        <div class="pg1-hero-emblem">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="57" stroke="#C9A84C" stroke-width="2.5" fill="rgba(255,255,255,0.05)"/>
+            <circle cx="60" cy="60" r="47" stroke="rgba(201,168,76,0.25)" stroke-width="1"/>
+            <rect x="20" y="72" width="12" height="28" fill="#C9A84C" rx="2"/>
+            <rect x="38" y="56" width="12" height="44" fill="#C9A84C" rx="2" opacity="0.9"/>
+            <rect x="56" y="38" width="12" height="62" fill="#C9A84C" rx="2"/>
+            <rect x="74" y="22" width="12" height="78" fill="#C9A84C" rx="2" opacity="0.85"/>
+            <polyline points="26,72 44,56 62,38 80,22" stroke="white" stroke-width="2.5" fill="none" stroke-dasharray="4 3"/>
+            <circle cx="26" cy="72" r="4" fill="white" opacity="0.9"/>
+            <circle cx="44" cy="56" r="4" fill="white" opacity="0.9"/>
+            <circle cx="62" cy="38" r="4" fill="white" opacity="0.9"/>
+            <circle cx="80" cy="22" r="4" fill="white" opacity="0.9"/>
+          </svg>
+        </div>
+
+        <div class="pg1-hero-tag">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"><path fill-rule="evenodd" d="M10.496 2.132a1 1 0 00-.992 0l-7 4A1 1 0 003 7v7a1 1 0 100 2h14a1 1 0 100-2V7a1 1 0 00.496-1.868l-7-4zM6 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1zm3 1a1 1 0 012 0v3a1 1 0 11-2 0v-3zm5-1a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          المركز الوطني التفاعلي
+        </div>
+
+        <h2 class="pg1-hero-title">نمذجة وتحليل البيانات السكانية</h2>
+        <p class="pg1-hero-org">دائرة الإحصاءات العامة — المملكة الأردنية الهاشمية</p>
+        <p class="pg1-hero-desc">
+          منصة متكاملة لتحليل البيانات السكانية والتنبؤ الإحصائي المتقدم بنماذج ARIMA،
+          تُمكّن صناع القرار والمخططين الحكوميين من اتخاذ قرارات مبنيةً على رؤى تحليلية شاملة ودقيقة.
+        </p>
+
+        <div class="pg1-hero-caps">
+          <div class="pg1-cap">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+            <span>نموذج ARIMA تلقائي</span>
+          </div>
+          <div class="pg1-cap">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/></svg>
+            <span>تحليل ذكاء اصطناعي</span>
+          </div>
+          <div class="pg1-cap">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd"/></svg>
+            <span>رسوم بيانية تفاعلية</span>
+          </div>
+          <div class="pg1-cap">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <span>تصدير CSV</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="pg1-how">
+      <div class="pg1-container">
+        <div class="pg1-sec-head">
+          <h3 class="pg1-sec-title">كيف يعمل النظام؟</h3>
+          <p class="pg1-sec-sub">ثلاث خطوات بسيطة للحصول على تحليل سكاني احترافي</p>
+        </div>
+        <div class="pg1-how-grid">
+
+          <div class="pg1-step-card">
+            <div class="pg1-step-num-badge">١</div>
+            <div class="pg1-step-ico pg1-ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <h4>رفع البيانات</h4>
+            <p>ارفع ملف Excel يحتوي على البيانات السكانية، أو تابع باستخدام البيانات المتاحة في قاعدة البيانات</p>
+          </div>
+
+          <div class="pg1-connector-wrap">
+            <svg viewBox="0 0 40 20" fill="none" width="40" height="20">
+              <line x1="36" y1="10" x2="6" y2="10" stroke="#cbd5e1" stroke-width="2"/>
+              <path d="M6 4l-5 6 5 6" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="pg1-step-card">
+            <div class="pg1-step-num-badge">٢</div>
+            <div class="pg1-step-ico pg1-ico-gold">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
+            </div>
+            <h4>المحادثة والتحليل</h4>
+            <p>تحدث مع المساعد الإحصائي الذكي لتحديد المحافظة، المنطقة، الفئة العمرية، والسنة المستهدفة</p>
+          </div>
+
+          <div class="pg1-connector-wrap">
+            <svg viewBox="0 0 40 20" fill="none" width="40" height="20">
+              <line x1="36" y1="10" x2="6" y2="10" stroke="#cbd5e1" stroke-width="2"/>
+              <path d="M6 4l-5 6 5 6" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="pg1-step-card">
+            <div class="pg1-step-num-badge">٣</div>
+            <div class="pg1-step-ico pg1-ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <h4>عرض النتائج</h4>
+            <p>استعرض الرسوم التفاعلية والجداول التفصيلية والتقارير المولّدة بالذكاء الاصطناعي لصناع القرار</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- UPLOAD + GUIDE -->
+    <section class="pg1-upload-sec">
+      <div class="pg1-container">
+        <div class="pg1-upload-grid">
+
+          <div class="upload-card">
+            <div class="upload-card-head">
+              <h3>رفع ملف البيانات</h3>
+              <span class="tag tag-amber">اختياري</span>
+            </div>
+
+            <div class="upload-zone" id="drop-zone">
+              <div class="upload-zone-inner">
+                <div class="upload-zone-icon" id="upload-icon">
+                  <svg viewBox="0 0 56 56" fill="none" width="56" height="56">
+                    <rect width="56" height="56" rx="16" fill="#e8f0fe"/>
+                    <path d="M28 12 L16 28 H23 V42 H33 V28 H40 Z" fill="#003f7f"/>
+                    <rect x="14" y="46" width="28" height="3.5" rx="1.75" fill="#003f7f" opacity="0.4"/>
+                  </svg>
+                </div>
+                <p class="upload-zone-title">اسحب ملف Excel هنا أو <span class="upload-zone-cta">انقر للاختيار</span></p>
+                <p class="upload-zone-hint">يُقبل xlsx · xls &nbsp;|&nbsp; الأعمدة المطلوبة: السنة، المحافظة، المنطقة، الحي، الفئة العمرية، عدد السكان</p>
+              </div>
+              <input type="file" id="file-input" accept=".xlsx,.xls" />
+            </div>
+
+            <div class="status-bar" id="status-bar"></div>
+
+            <div class="upload-actions">
+              <button class="btn-primary btn-lg" id="upload-continue-btn" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M9 18l6-6-6-6"/></svg>
+                متابعة للتحليل
+              </button>
+              <button class="btn-ghost btn-lg" id="skip-upload-btn">تخطي والمتابعة بدون ملف</button>
+            </div>
+          </div>
+
+          <div class="pg1-guide-card">
+            <h4 class="pg1-guide-title">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              إرشادات الاستخدام
+            </h4>
+
+            <div class="pg1-guide-group">
+              <h5 class="pg1-guide-ghead">متطلبات الملف</h5>
+              <ul class="pg1-guide-list">
+                <li>صيغة Excel فقط (.xlsx أو .xls)</li>
+                <li>الحد الأدنى نقطتا بيانات للتنبؤ</li>
+                <li>يجب أن يحتوي على الأعمدة التالية:</li>
+              </ul>
+              <div class="pg1-col-tags">
+                <span class="pg1-col-tag">السنة</span>
+                <span class="pg1-col-tag">المحافظة</span>
+                <span class="pg1-col-tag">المنطقة</span>
+                <span class="pg1-col-tag">الحي</span>
+                <span class="pg1-col-tag">الفئة العمرية</span>
+                <span class="pg1-col-tag">عدد السكان</span>
+              </div>
+            </div>
+
+            <div class="pg1-guide-divider"></div>
+
+            <div class="pg1-guide-group">
+              <h5 class="pg1-guide-ghead">مميزات النظام</h5>
+              <ul class="pg1-guide-list">
+                <li>تنبؤات سكانية دقيقة لأي سنة مستهدفة</li>
+                <li>اختيار تلقائي لأفضل رتبة نموذج ARIMA</li>
+                <li>مجالات ثقة 95% لكل تنبؤ مستقبلي</li>
+                <li>تقارير تحليلية مولّدة بالذكاء الاصطناعي</li>
+                <li>رسوم بيانية تفاعلية قابلة للتصدير</li>
+              </ul>
+            </div>
+
+            <div class="pg1-guide-divider"></div>
+
+            <div class="pg1-guide-note">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" style="flex-shrink:0;margin-top:1px"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              التنبؤات تُعدّ تقديرات نموذجية للأغراض التحليلية فقط ولا تُعدّ وثيقة رسمية
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Chat -->
-  <div class="card">
-    <h2>② المحادثة الموجّهة</h2>
-    <div class="chat-box" id="chat-box">
-      <div class="bubble bot">مرحبًا! ارفع ملف البيانات أولًا، ثم اكتب سؤالك (مثال: «ما عدد السكان المتوقع في عام 2030؟»).</div>
-    </div>
-    <div class="chat-input-row" style="margin-top:0.75rem">
-      <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا…" />
-      <button class="btn-primary" id="send-btn">إرسال</button>
-      <button class="btn-secondary" id="back-btn">← رجوع</button>
-      <button class="btn-secondary" id="reset-btn">إعادة</button>
+  <!-- ═══════════════════ SCREEN 2 — CHAT ═══════════════════ -->
+  <div id="screen-chat" class="screen">
+    <div class="chat-layout">
+
+      <aside class="chat-sidebar">
+        <div class="sidebar-agent">
+          <div class="agent-avatar-wrap">
+            <svg viewBox="0 0 44 44" fill="none" width="44" height="44">
+              <circle cx="22" cy="22" r="22" fill="#003f7f"/>
+              <circle cx="22" cy="18" r="7" fill="#C9A84C"/>
+              <path d="M8 42c0-7.732 6.268-14 14-14s14 6.268 14 14" fill="#C9A84C" opacity="0.85"/>
+            </svg>
+            <span class="agent-online-dot"></span>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">المساعد الإحصائي</div>
+            <div class="agent-status">متصل الآن</div>
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label">تقدّم الجلسة</div>
+        <div class="prog-steps">
+          <div class="prog-step" id="prog-year">
+            <div class="prog-dot"></div>
+            <div class="prog-info">
+              <span class="prog-label">السنة المستهدفة</span>
+              <span class="prog-val" id="si-year-val">—</span>
+            </div>
+          </div>
+          <div class="prog-step" id="prog-gov">
+            <div class="prog-dot"></div>
+            <div class="prog-info">
+              <span class="prog-label">المحافظة</span>
+              <span class="prog-val" id="si-gov-val">—</span>
+            </div>
+          </div>
+          <div class="prog-step" id="prog-region">
+            <div class="prog-dot"></div>
+            <div class="prog-info">
+              <span class="prog-label">المنطقة</span>
+              <span class="prog-val" id="si-region-val">—</span>
+            </div>
+          </div>
+          <div class="prog-step" id="prog-nb">
+            <div class="prog-dot"></div>
+            <div class="prog-info">
+              <span class="prog-label">الحي</span>
+              <span class="prog-val" id="si-nb-val">—</span>
+            </div>
+          </div>
+          <div class="prog-step" id="prog-age">
+            <div class="prog-dot"></div>
+            <div class="prog-info">
+              <span class="prog-label">الفئة العمرية</span>
+              <span class="prog-val" id="si-age-val">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="sidebar-file-info" class="sidebar-file-info" style="display:none;">
+          <div class="sidebar-divider"></div>
+          <div class="sidebar-section-label">الملف المرفوع</div>
+          <div class="file-chip">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+            <span id="si-file-val">—</span>
+          </div>
+        </div>
+
+        <div class="sidebar-actions">
+          <button class="btn-sidebar" id="back-to-upload-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M15 18l-6-6 6-6"/></svg>
+            رجوع للرئيسية
+          </button>
+          <button class="btn-sidebar danger" id="reset-session-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.65-3M20 15a9 9 0 01-14.65 3"/></svg>
+            جلسة جديدة
+          </button>
+        </div>
+      </aside>
+
+      <main class="chat-main">
+        <div class="chat-topbar">
+          <div class="chat-topbar-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="chat-topbar-title">محادثة التحليل الإحصائي</div>
+            <div class="chat-topbar-sub">أجب على الأسئلة خطوة بخطوة للحصول على التنبؤ السكاني</div>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-box"></div>
+
+        <div class="chat-footer">
+          <div class="chat-input-wrap">
+            <input type="text" id="chat-input"
+              placeholder="اكتب ردّك أو اختر من الخيارات أعلاه…"
+              autocomplete="off" />
+            <button class="btn-send" id="send-btn" title="إرسال">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </main>
+
     </div>
   </div>
 
-  <!-- Results -->
-  <div id="results-section">
-    <div class="card">
-      <h2>③ نتائج التنبؤ</h2>
+  <!-- ═══════════════════ SCREEN 3 — RESULTS ═══════════════════ -->
+  <div id="screen-results" class="screen">
+    <div class="results-page">
 
-      <div class="informal-badge">⚠ تقدير نموذجي غير رسمي — للأغراض التحليلية فقط</div>
-
-      <div id="forecast-message" style="display:none; margin-bottom:0.75rem; color:#744210; background:#fefcbf; border:1px solid #f6e05e; border-radius:6px; padding:0.5rem 0.9rem; font-size:0.88rem;"></div>
-
-      <div class="summary-cards">
-        <div class="s-card">
-          <div class="label">التركيبة</div>
-          <div class="value" id="sc-combination" style="font-size:0.82rem;">—</div>
+      <div class="results-topbar">
+        <div class="results-topbar-left">
+          <h2 class="results-title">نتائج التحليل والتنبؤ الإحصائي</h2>
+          <span class="informal-badge">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+            تقدير نموذجي — للأغراض التحليلية فقط
+          </span>
         </div>
-        <div class="s-card">
-          <div class="label">رتبة ARIMA (p,d,q)</div>
-          <div class="value" id="sc-order">—</div>
-        </div>
-        <div class="s-card">
-          <div class="label">AIC</div>
-          <div class="value" id="sc-aic">—</div>
-        </div>
-        <div class="s-card">
-          <div class="label">نقاط البيانات</div>
-          <div class="value" id="sc-points">—</div>
-        </div>
-        <div class="s-card">
-          <div class="label">التقدير للسنة المستهدفة</div>
-          <div class="value" id="sc-target">—</div>
+        <div class="results-topbar-actions">
+          <button class="btn-outline btn-sm" id="back-to-chat-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M15 18l-6-6 6-6"/></svg>
+            رجوع
+          </button>
+          <button class="btn-outline btn-sm" id="new-forecast-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.65-3M20 15a9 9 0 01-14.65 3"/></svg>
+            تنبؤ جديد
+          </button>
+          <button class="btn-primary btn-sm" id="download-csv-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-6 3h12v2H6v-2z"/></svg>
+            تنزيل CSV
+          </button>
         </div>
       </div>
 
-      <div id="forecast-chart" style="width:100%; height:400px;"></div>
+      <div id="forecast-message" class="forecast-msg" style="display:none;"></div>
 
-      <div class="results-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>السنة</th>
-              <th>عدد السكان</th>
-              <th>الحد الأدنى (95%)</th>
-              <th>الحد الأعلى (95%)</th>
-              <th>النوع</th>
-            </tr>
-          </thead>
-          <tbody id="results-tbody"></tbody>
-        </table>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap blue">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">التقدير للسنة المستهدفة</div>
+            <div class="kpi-value" id="sc-target">—</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap gold">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">رتبة ARIMA (p,d,q)</div>
+            <div class="kpi-value" id="sc-order">—</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap green">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">معيار AIC</div>
+            <div class="kpi-value" id="sc-aic">—</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap navy">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm7 3a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm-7 13v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19H5z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">نقاط البيانات</div>
+            <div class="kpi-value" id="sc-points">—</div>
+          </div>
+        </div>
+        <div class="kpi-card wide">
+          <div class="kpi-icon-wrap red">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">التركيبة المحددة</div>
+            <div class="kpi-value small" id="sc-combination">—</div>
+          </div>
+        </div>
       </div>
 
-      <div class="actions-row">
-        <button class="btn-primary" id="download-csv-btn">⬇ تنزيل النتائج CSV</button>
-        <button class="btn-secondary" id="new-forecast-btn">🔄 تنبؤ جديد</button>
+      <div class="results-card">
+        <div class="card-header">
+          <h3 class="card-title">الرسم البياني للتنبؤ السكاني</h3>
+        </div>
+        <div id="forecast-chart" style="width:100%; height:420px;"></div>
       </div>
+
+      <div class="results-card">
+        <div class="card-header">
+          <h3 class="card-title">جدول البيانات التفصيلي</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>السنة</th>
+                <th>عدد السكان</th>
+                <th>الحد الأدنى 95%</th>
+                <th>الحد الأعلى 95%</th>
+                <th>النوع</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="results-card ai-card">
+        <div class="card-header">
+          <div class="ai-header-content">
+            <div class="ai-header-icon">
+              <svg viewBox="0 0 44 44" fill="none" width="40" height="40">
+                <circle cx="22" cy="22" r="22" fill="#003f7f"/>
+                <path d="M16 30V20l6-7 6 7v10" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="19" y="24" width="6" height="6" rx="1" fill="#C9A84C"/>
+                <circle cx="22" cy="12" r="2.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title">التحليل الذكي التلقائي</h3>
+              <p class="ai-desc">تحليل شامل للنتائج وإصدار تقرير لصناع القرار — مدعوم بـ Groq Llama AI</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-key-section">
+          <label class="ai-key-label" for="groq-api-key">
+            مفتاح Groq API
+            <a href="https://console.groq.com" target="_blank" rel="noopener" class="ai-key-link">(مجاني من console.groq.com)</a>
+          </label>
+          <div class="ai-key-row">
+            <input type="password" id="groq-api-key" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+            <button class="btn-primary" id="analyze-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              تحليل ذكي
+            </button>
+          </div>
+          <p class="ai-key-hint">سجّل مجاناً ← console.groq.com ← API Keys ← Create API Key</p>
+        </div>
+
+        <div id="ai-loading" style="display:none;" class="ai-loading">
+          <div class="ai-dots"><span></span><span></span><span></span></div>
+          <span>جارٍ تحليل البيانات بالذكاء الاصطناعي…</span>
+        </div>
+
+        <div id="ai-analysis-result" style="display:none;" class="ai-result">
+          <div class="ai-result-text" id="ai-text"></div>
+          <div class="ai-disclaimer">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/></svg>
+            هذا التحليل مولّد بالذكاء الاصطناعي للاستئناس فقط ولا يُعدّ وثيقة رسمية
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
 
-<script>
-// Store governorates when upload succeeds
-window._governorates = [];
-const _origFetch = window.fetch;
-window.fetch = async function(...args) {
-  const res = await _origFetch(...args);
-  if (args[0] === '/upload' && res.ok) {
-    const clone = res.clone();
-    clone.json().then(d => { if (d.governorates) window._governorates = d.governorates; });
-  }
-  return res;
-};
-</script>
-<script>
-// Fix askGovernorate to use stored list
-</script>
-<script src="/static/app.js"></script>
-<script>
-// Override askGovernorate after app.js loaded
-async function askGovernorate() {
-  transitionTo(STATE.CHOOSING_GOVERNORATE);
-  const govs = window._governorates || [];
-  if (!govs.length) { addBotMessage('لا توجد محافظات في البيانات.'); return; }
-  addBotMessage('اختر المحافظة:');
-  showOptions(govs, val => { choices.governorate = val; addUserMessage(val); askRegion(); });
-}
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="footer-brand">دائرة الإحصاءات العامة — المملكة الأردنية الهاشمية</span>
+    <span class="footer-copy">© 2025 جميع الحقوق محفوظة · المركز الوطني التفاعلي</span>
+  </div>
+</footer>
 
-document.getElementById('new-forecast-btn').addEventListener('click', resetAll);
-</script>
+<script src="/static/app.js"></script>
 </body>
 </html>

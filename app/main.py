@@ -4,11 +4,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io
 import logging
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+import httpx
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.requests import Request
 import pandas as pd
 
 from app.data_io import (
@@ -22,7 +22,7 @@ from app.store import save_upload, get_upload
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="تقدير السكان بـ ARIMA")
+app = FastAPI(title="نمذجة وتحليل البيانات — دائرة الإحصاءات العامة الأردنية")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -152,3 +152,102 @@ async def download_csv(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=forecast.csv"},
     )
+
+
+@app.post("/ai_analyze")
+async def ai_analyze(request: Request):
+    body = await request.json()
+    api_key = body.get("api_key", "").strip()
+    forecast_data = body.get("forecast_data", {})
+
+    if not api_key:
+        raise HTTPException(status_code=400, detail="مفتاح Groq API مطلوب")
+
+    combo = forecast_data.get("combination", "غير محدد")
+    historical = forecast_data.get("historical", [])
+    forecast_pts = forecast_data.get("forecast", [])
+    order = forecast_data.get("selected_order", [0, 0, 0])
+    aic = forecast_data.get("aic", 0)
+
+    hist_text = "\n".join([f"  - {p['year']}: {int(p['value']):,} نسمة" for p in historical])
+    fc_text = "\n".join([
+        f"  - {p['year']}: {int(p['value']):,} نسمة (مجال الثقة 95%: {int(p['lower']):,} — {int(p['upper']):,})"
+        for p in forecast_pts
+    ])
+
+    growth_note = ""
+    if historical and forecast_pts:
+        last_hist_val = historical[-1]["value"]
+        last_fc_val = forecast_pts[-1]["value"]
+        last_fc_year = forecast_pts[-1]["year"]
+        if last_hist_val > 0:
+            pct = ((last_fc_val - last_hist_val) / last_hist_val) * 100
+            direction = "نمو" if pct >= 0 else "انخفاض"
+            growth_note = f"نسبة ال{direction} المتوقعة حتى {last_fc_year}: {abs(pct):.1f}%"
+
+    prompt = f"""أنت محلل إحصائي متخصص في دائرة الإحصاءات العامة الأردنية.
+قم بتحليل نتائج نموذج ARIMA للتنبؤ بالأعداد السكانية وكتابة تقرير احترافي مختصر باللغة العربية الفصحى.
+
+المعطيات:
+- التركيبة: {combo}
+- رتبة النموذج ARIMA(p,d,q): ({order[0]},{order[1]},{order[2]})
+- معيار AIC: {aic:.1f}
+{growth_note}
+
+البيانات التاريخية:
+{hist_text}
+
+التنبؤات المستقبلية:
+{fc_text}
+
+اكتب تقريرًا احترافيًا يشمل الأقسام الأربعة التالية فقط، بأسلوب رسمي مناسب للمسؤولين الحكوميين:
+
+## أولاً: تحليل الاتجاه السكاني
+(تحليل مختصر للاتجاه من البيانات التاريخية والتنبؤات)
+
+## ثانياً: الملاحظات الإحصائية
+(جودة النموذج وأبرز الملاحظات التقنية)
+
+## ثالثاً: توصيات لصناع القرار
+(توصيات عملية مبنية على نتائج التحليل)
+
+## رابعاً: التحفظات والمخاطر
+(حدود دقة التنبؤ والعوامل غير المؤكدة)
+
+اجعل كل قسم موجزاً (٣-٥ جمل) ومفيداً للمخططين والمسؤولين الحكوميين."""
+
+    try:
+        async with httpx.AsyncClient(timeout=40.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 1200,
+                    "temperature": 0.3,
+                },
+            )
+
+        if response.status_code == 401:
+            raise HTTPException(status_code=401, detail="مفتاح API غير صحيح. تحقق من المفتاح في console.groq.com")
+        if response.status_code == 429:
+            raise HTTPException(status_code=429, detail="تم تجاوز حد الطلبات. انتظر قليلاً وأعد المحاولة")
+        if response.status_code != 200:
+            err = response.json().get("error", {}).get("message", "خطأ غير معروف")
+            raise HTTPException(status_code=400, detail=f"خطأ من Groq API: {err}")
+
+        result = response.json()
+        analysis = result["choices"][0]["message"]["content"]
+        return {"analysis": analysis}
+
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="انتهت مهلة الاتصال. حاول مرة أخرى")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI analyze error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ في الاتصال بالذكاء الاصطناعي: {str(e)}")
