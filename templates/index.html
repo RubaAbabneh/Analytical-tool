@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تقدير السكان بـ ARIMA</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+</head>
+<body>
+<header>
+  <span>📊</span>
+  <h1>نظام تقدير السكان بنموذج ARIMA</h1>
+</header>
+
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <span id="loading-msg">جارٍ التحميل…</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="card">
+    <h2>① رفع ملف البيانات (Excel .xlsx)</h2>
+    <div class="upload-zone" id="drop-zone">
+      <div class="icon">📁</div>
+      <p>اسحب الملف هنا أو انقر للاختيار</p>
+      <input type="file" id="file-input" accept=".xlsx,.xls" />
+    </div>
+    <div class="status-bar" id="status-bar"></div>
+  </div>
+
+  <!-- Chat -->
+  <div class="card">
+    <h2>② المحادثة الموجّهة</h2>
+    <div class="chat-box" id="chat-box">
+      <div class="bubble bot">مرحبًا! ارفع ملف البيانات أولًا، ثم اكتب سؤالك (مثال: «ما عدد السكان المتوقع في عام 2030؟»).</div>
+    </div>
+    <div class="chat-input-row" style="margin-top:0.75rem">
+      <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا…" />
+      <button class="btn-primary" id="send-btn">إرسال</button>
+      <button class="btn-secondary" id="back-btn">← رجوع</button>
+      <button class="btn-secondary" id="reset-btn">إعادة</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <div class="card">
+      <h2>③ نتائج التنبؤ</h2>
+
+      <div class="informal-badge">⚠ تقدير نموذجي غير رسمي — للأغراض التحليلية فقط</div>
+
+      <div id="forecast-message" style="display:none; margin-bottom:0.75rem; color:#744210; background:#fefcbf; border:1px solid #f6e05e; border-radius:6px; padding:0.5rem 0.9rem; font-size:0.88rem;"></div>
+
+      <div class="summary-cards">
+        <div class="s-card">
+          <div class="label">التركيبة</div>
+          <div class="value" id="sc-combination" style="font-size:0.82rem;">—</div>
+        </div>
+        <div class="s-card">
+          <div class="label">رتبة ARIMA (p,d,q)</div>
+          <div class="value" id="sc-order">—</div>
+        </div>
+        <div class="s-card">
+          <div class="label">AIC</div>
+          <div class="value" id="sc-aic">—</div>
+        </div>
+        <div class="s-card">
+          <div class="label">نقاط البيانات</div>
+          <div class="value" id="sc-points">—</div>
+        </div>
+        <div class="s-card">
+          <div class="label">التقدير للسنة المستهدفة</div>
+          <div class="value" id="sc-target">—</div>
+        </div>
+      </div>
+
+      <div id="forecast-chart" style="width:100%; height:400px;"></div>
+
+      <div class="results-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>السنة</th>
+              <th>عدد السكان</th>
+              <th>الحد الأدنى (95%)</th>
+              <th>الحد الأعلى (95%)</th>
+              <th>النوع</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn-primary" id="download-csv-btn">⬇ تنزيل النتائج CSV</button>
+        <button class="btn-secondary" id="new-forecast-btn">🔄 تنبؤ جديد</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Store governorates when upload succeeds
+window._governorates = [];
+const _origFetch = window.fetch;
+window.fetch = async function(...args) {
+  const res = await _origFetch(...args);
+  if (args[0] === '/upload' && res.ok) {
+    const clone = res.clone();
+    clone.json().then(d => { if (d.governorates) window._governorates = d.governorates; });
+  }
+  return res;
+};
+</script>
+<script>
+// Fix askGovernorate to use stored list
+</script>
+<script src="/static/app.js"></script>
+<script>
+// Override askGovernorate after app.js loaded
+async function askGovernorate() {
+  transitionTo(STATE.CHOOSING_GOVERNORATE);
+  const govs = window._governorates || [];
+  if (!govs.length) { addBotMessage('لا توجد محافظات في البيانات.'); return; }
+  addBotMessage('اختر المحافظة:');
+  showOptions(govs, val => { choices.governorate = val; addUserMessage(val); askRegion(); });
+}
+
+document.getElementById('new-forecast-btn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>
